@@ -1,0 +1,8 @@
+discord.py
+python-dotenv
+datetime
+psutil
+requests
+aiohttp
+asyncio
+groq
