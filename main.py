@@ -8,6 +8,8 @@ import random, os, sys, io, contextlib, platform, psutil, requests, aiohttp, asy
 from groq import Groq
 from discord.ext.commands import MissingPermissions
 
+from keep_alive import keep_alive
+
 print(sys.executable)
 
 
@@ -19,6 +21,8 @@ load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 client = Groq(api_key=GROQ_API_KEY)
+
+keep_alive()
 
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
