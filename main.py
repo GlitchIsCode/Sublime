@@ -17,7 +17,7 @@ GITHUB_OWNER = "Nashatra-dev"
 BRANCH = "main"
 GITHUB_REPO = "Sublime" 
 
-
+OWNER_IDS = {488329679972073516} ## 986927876769202176 squire 1451510184475234304 leo  1373357313036914731 gsteed
 
 async def send_long(ctx, text, chunk_size=1900):
     for i in range(0, len(text), chunk_size):
@@ -643,7 +643,9 @@ async def channels(ctx):
 @bot.command(help="Reboots the bot")
 @is_owner()
 async def reboot(ctx):
-    os.execv(sys.executable, ['python'] + sys.argv)
+    await ctx.send("Rebooting...")
+    await bot.close()
+    subprocess.Popen([sys.executable, "main.py"])
 
 @bot.command(help="Shows recent errors")
 @is_owner()
