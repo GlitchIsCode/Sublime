@@ -16,7 +16,7 @@ print(sys.executable)
 GITHUB_OWNER = "Nashatra-dev"
 BRANCH = "main"
 GITHUB_REPO = "Sublime" 
-
+REMOTE = GITHUB_REPO
 OWNER_IDS = {488329679972073516} ## 986927876769202176 squire 1451510184475234304 leo  1373357313036914731 gsteed
 
 async def send_long(ctx, text, chunk_size=1900):
@@ -850,85 +850,42 @@ async def github(ctx):
 @bot.command(help="Shows how behind the bot is from GitHub")
 async def behind(ctx):
     try:
+        REMOTE = "Sublime"
+        BRANCH = "main"
+        GITHUB_OWNER = "Nashatra-dev"
+        GITHUB_REPO = "Sublime"
 
-        subprocess.run(["git", "fetch", "Sublime"], check=True)
+        subprocess.run(["git", "fetch", REMOTE], check=True)
 
-        result = subprocess.check_output(
-            ["git", "rev-list", "--count", f"HEAD..Sublime/{BRANCH}"]
-        ).decode().strip()
+        behind_count = int(subprocess.check_output(
+            ["git", "rev-list", "--count", f"HEAD..{REMOTE}/{BRANCH}"]
+        ).decode().strip())
 
-        behind_count = int(result)
+        ahead_count = int(subprocess.check_output(
+            ["git", "rev-list", "--count", f"{REMOTE}/{BRANCH}..HEAD"]
+        ).decode().strip())
 
-
-        if behind_count == 0:
-            status = "Up to date </3"
-            color = discord.Color.dark_grey()
+        if ahead_count == 0 and behind_count == 0:
+            status = "Up to date"
+        elif ahead_count > 0 and behind_count == 0:
+            status = "Ahead of GitHub"
+        elif ahead_count == 0 and behind_count > 0:
+            status = "Behind GitHub"
         else:
-            status = f"{behind_count} commit(s) behind"
-            color = discord.Color.dark_gray()
+            status = "Diverged from GitHub"
 
-        embed = discord.Embed(
-            title="GitHub Status",
-            color=color
-        )
-
+        embed = discord.Embed(title="GitHub Status")
         embed.add_field(name="Repository", value=f"{GITHUB_OWNER}/{GITHUB_REPO}", inline=False)
         embed.add_field(name="Branch", value=BRANCH, inline=True)
         embed.add_field(name="Status", value=status, inline=True)
-        embed.add_field(name="Behind By", value=str(behind_count), inline=True)
-
-
-
-    except Exception as e:
-        await ctx.send(f"Error: {e}")
-    try:
-
-        local_commit = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"]
-        ).decode().strip()
-
-
-        url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/commits/{BRANCH}"
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                if resp.status != 200:
-                    await ctx.send(" Failed to fetch GitHub data.")
-                    return
-
-                data = await resp.json()
-                remote_commit = data["sha"]
-
-
-        result = subprocess.check_output(
-            ["git", "rev-list", "--count", f"{local_commit}..{remote_commit}"]
-        ).decode().strip()
-
-        behind_count = int(result)
-
-
-        if behind_count == 0:
-            status = " Up to date </3"
-            color = discord.Color.dark_grey()
-        else:
-            status = f" {behind_count} commit(s) behind </3"
-            color = discord.Color.dark_grey()
-
-        embed = discord.Embed(
-            title="GitHub Status",
-            color=color
-        )
-
-        embed.add_field(name="Repository", value=f"{GITHUB_OWNER}/{GITHUB_REPO}", inline=False)
-        embed.add_field(name="Branch", value=BRANCH, inline=True)
-        embed.add_field(name="Status", value=status, inline=True)
-        embed.add_field(name="Behind By", value=str(behind_count), inline=True)
+        embed.add_field(name="Ahead By", value=str(ahead_count), inline=False)
+        embed.add_field(name="Behind By", value=str(behind_count), inline=False)
 
         await ctx.send(embed=embed)
 
     except Exception as e:
         await ctx.send(f"Error: {e}")
-
+        
 @bot.command(help="Shows how many servers the bot is in and how many users it can see")
 async def bstats(ctx):
     embed = discord.Embed(title="Bot Stats </3", color=0x2b2d31)
