@@ -630,6 +630,14 @@ async def rps(ctx):
     else:
         await ctx.send("I win!")
 
+@bot.command(help="Mutes a member for a specified duration in minutes")
+@commands.has_permissions(moderate_members=True)
+async def tempmute(ctx, member: discord.Member, duration: int, *, reason=None):
+    if member.id in OWNER_IDS:
+        return await ctx.send("You cannot mute the owner.")
+    await member.timeout(discord.utils.utcnow() + discord.timedelta(minutes=duration), reason=reason)
+    await ctx.send(f'{member.mention} has been muted for {duration} minutes.')
+
 @bot.command(help="Shuts down the bot")
 @is_owner()
 async def shutdown(ctx):
