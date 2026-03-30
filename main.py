@@ -7,6 +7,7 @@ from datetime import datetime
 import random, os, sys, io, contextlib, platform, psutil, requests, aiohttp, asyncio, inspect
 from groq import Groq
 from discord.ext.commands import MissingPermissions
+import subprocess
 
 from keep_alive import keep_alive
 
@@ -36,6 +37,9 @@ ai_enabled = False
 afk_users = {}
 OWNER_IDS = {488329679972073516, 1373357313036914731} ## 986927876769202176 squire 1451510184475234304 leo  1373357313036914731 gsteed
 deleted_messages = {}
+GITHUB_OWNER = "Nashatra-dev"
+BRANCH = "main"
+GITHUB_REPO = "Sublime" 
 
 def is_owner():
     async def predicate(ctx):
@@ -59,6 +63,7 @@ class ProfileView(discord.ui.View):
         if self.index < len(self.pages) - 1:
             self.index += 1
             await interaction.response.edit_message(embed=self.pages[self.index], view=self)
+
 
 
 
@@ -834,5 +839,66 @@ async def safk(ctx):
 async def github(ctx):
     await ctx.send("Check out the source code on GitHub: https://github.com/Nashatra-dev/Sublime - Nashatra </3")    
 
+
+
+    
+@bot.command(help="Shows how behind the bot is from GitHub")
+async def behind(ctx):
+    try:
+        # Get local commit hash
+        local_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"]
+        ).decode().strip()
+
+        # Get latest commit from GitHub
+        url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/commits/{BRANCH}"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    await ctx.send(" Failed to fetch GitHub data.")
+                    return
+
+                data = await resp.json()
+                remote_commit = data["sha"]
+
+        # Compare commits
+        result = subprocess.check_output(
+            ["git", "rev-list", "--count", f"{local_commit}..{remote_commit}"]
+        ).decode().strip()
+
+        behind_count = int(result)
+
+        # Embed
+        if behind_count == 0:
+            status = " Up to date </3"
+            color = discord.Color.green()
+        else:
+            status = f" {behind_count} commit(s) behind </3"
+            color = discord.Color.orange()
+
+        embed = discord.Embed(
+            title="GitHub Status",
+            color=color
+        )
+
+        embed.add_field(name="Repository", value=f"{GITHUB_OWNER}/{GITHUB_REPO}", inline=False)
+        embed.add_field(name="Branch", value=BRANCH, inline=True)
+        embed.add_field(name="Status", value=status, inline=True)
+        embed.add_field(name="Behind By", value=str(behind_count), inline=True)
+
+        await ctx.send(embed=embed)
+
+    except Exception as e:
+        await ctx.send(f"Error: {e}")
+
+@bot.command(help="Shows how many servers the bot is in and how many users it can see")
+async def bstats(ctx):
+    embed = discord.Embed(title="Bot Stats </3", color=0x2b2d31)
+    embed.add_field(name="Servers", value=str(len(bot.guilds)), inline=True)
+    embed.add_field(name="Users", value=str(len(bot.users)), inline=True)
+    await ctx.send(embed=embed)
+        
+        
 bot.launch_time = datetime.now()
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
