@@ -854,14 +854,10 @@ async def github(ctx):
 
 
 
-
 @bot.command(help="Shows how behind the bot is from GitHub")
 async def behind(ctx):
     try:
-        REMOTE = "Sublime"
-        BRANCH = "main"
-        GITHUB_OWNER = "Nashatra-dev"
-        GITHUB_REPO = "Sublime"
+      
 
         subprocess.run(["git", "fetch", REMOTE], check=True)
 
