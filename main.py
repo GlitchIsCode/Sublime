@@ -892,7 +892,21 @@ async def bstats(ctx):
     embed.add_field(name="Servers", value=str(len(bot.guilds)), inline=True)
     embed.add_field(name="Users", value=str(len(bot.users)), inline=True)
     await ctx.send(embed=embed)
-        
+@bot.command(help="Dms the owner all the servers bot are in and their invite links")
+@is_owner()
+async def serverlist(ctx):
+    lines = []
+    for guild in bot.guilds:
+        invite = None
+        for channel in guild.text_channels:
+            try:
+                invite = await channel.create_invite(max_age=0, max_uses=0)
+                break
+            except:
+                continue
+        invite_url = invite.url if invite else "No invite available"
+        lines.append(f"{guild.name} (ID: {guild.id}) - Invite: {invite_url}")
+    await ctx.author.send("\n".join(lines))      
         
 bot.launch_time = datetime.now()
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
