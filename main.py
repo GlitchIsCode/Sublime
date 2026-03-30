@@ -13,6 +13,11 @@ from keep_alive import keep_alive
 
 print(sys.executable)
 
+GITHUB_OWNER = "Nashatra-dev"
+BRANCH = "main"
+GITHUB_REPO = "Sublime" 
+
+
 
 async def send_long(ctx, text, chunk_size=1900):
     for i in range(0, len(text), chunk_size):
@@ -35,11 +40,9 @@ bot = commands.Bot(command_prefix=',', intents=intents, help_command=None)
 
 ai_enabled = False
 afk_users = {}
-OWNER_IDS = {488329679972073516, 1373357313036914731} ## 986927876769202176 squire 1451510184475234304 leo  1373357313036914731 gsteed
+
 deleted_messages = {}
-GITHUB_OWNER = "Nashatra-dev"
-BRANCH = "main"
-GITHUB_REPO = "Sublime" 
+
 
 def is_owner():
     async def predicate(ctx):
@@ -104,7 +107,7 @@ async def on_message(message):
         await message.channel.send(reply)
     await bot.process_commands(message)
 
-@discord.ui.button(label="Next", style=discord.ButtonStyle.green)
+@discord.ui.button(label="Next", style=discord.ButtonStyle.red)
 async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
     self.current = (self.current + 1) % len(self.pages)
     await interaction.response.edit_message(embed=self.pages[self.current], view=self)
@@ -841,16 +844,48 @@ async def github(ctx):
 
 
 
-    
+
 @bot.command(help="Shows how behind the bot is from GitHub")
 async def behind(ctx):
     try:
-        # Get local commit hash
+
+        subprocess.run(["git", "fetch", "Sublime"], check=True)
+
+        result = subprocess.check_output(
+            ["git", "rev-list", "--count", f"HEAD..Sublime/{BRANCH}"]
+        ).decode().strip()
+
+        behind_count = int(result)
+
+
+        if behind_count == 0:
+            status = "Up to date </3"
+            color = discord.Color.dark_grey()
+        else:
+            status = f"{behind_count} commit(s) behind"
+            color = discord.Color.dark_gray()
+
+        embed = discord.Embed(
+            title="GitHub Status",
+            color=color
+        )
+
+        embed.add_field(name="Repository", value=f"{GITHUB_OWNER}/{GITHUB_REPO}", inline=False)
+        embed.add_field(name="Branch", value=BRANCH, inline=True)
+        embed.add_field(name="Status", value=status, inline=True)
+        embed.add_field(name="Behind By", value=str(behind_count), inline=True)
+
+
+
+    except Exception as e:
+        await ctx.send(f"Error: {e}")
+    try:
+
         local_commit = subprocess.check_output(
             ["git", "rev-parse", "HEAD"]
         ).decode().strip()
 
-        # Get latest commit from GitHub
+
         url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/commits/{BRANCH}"
 
         async with aiohttp.ClientSession() as session:
@@ -862,20 +897,20 @@ async def behind(ctx):
                 data = await resp.json()
                 remote_commit = data["sha"]
 
-        # Compare commits
+
         result = subprocess.check_output(
             ["git", "rev-list", "--count", f"{local_commit}..{remote_commit}"]
         ).decode().strip()
 
         behind_count = int(result)
 
-        # Embed
+
         if behind_count == 0:
             status = " Up to date </3"
-            color = discord.Color.green()
+            color = discord.Color.dark_grey()
         else:
             status = f" {behind_count} commit(s) behind </3"
-            color = discord.Color.orange()
+            color = discord.Color.dark_grey()
 
         embed = discord.Embed(
             title="GitHub Status",
