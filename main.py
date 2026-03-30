@@ -32,7 +32,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix=',', intents=intents, help_command=None)
 
-ai_enabled = True
+ai_enabled = False
 afk_users = {}
 OWNER_IDS = {488329679972073516, 1373357313036914731} ## 986927876769202176 squire 1451510184475234304 leo  1373357313036914731 gsteed
 deleted_messages = {}
